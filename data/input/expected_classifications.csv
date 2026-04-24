@@ -1,0 +1,17 @@
+source_id,source_type,category,priority,technical_details,suggested_title
+REV00001,review,Bug,High,Device: iPhone 14 | OS: Android 13 | Trigger: open the app,[Bug] App fails to open the app
+REV00002,review,Bug,Low,Device: iPhone 15 Pro | OS: Android 13 | Trigger: log in,[Bug] App fails to log in
+REV00003,review,Bug,Medium,Device: OnePlus 12 | OS: iOS 16.6 | Trigger: upload a file,[Bug] App fails to upload a file
+REV00004,review,Feature Request,Medium,,Feature Request
+REV00005,review,Feature Request,Medium,,Feature Request
+REV00006,review,Praise,Low,,[Praise] Positive user feedback
+REV00007,review,Praise,Low,,[Praise] Positive user feedback
+REV00008,review,Complaint,Medium,,[Complaint] Negative user experience reported
+REV00009,review,Complaint,Medium,,[Complaint] Negative user experience reported
+REV00010,review,Spam,Low,,[Spam] Flagged for removal
+EML00001,email,Bug,Medium,Device: Samsung Galaxy A54 | OS: iOS 17.2 | Trigger: check my notifications | App version: 3.0.0,[Bug] App fails to check my notifications
+EML00002,email,Bug,High,Device: Pixel 7a | OS: Android 15 | Trigger: upload a file | App version: 2.0.1,[Bug] App fails to upload a file
+EML00003,email,Bug,Medium,Device: Samsung Galaxy A54 | OS: iOS 16.6 | Trigger: load my dashboard | App version: 2.1.3,[Bug] App fails to load my dashboard
+EML00004,email,Bug,Low,Device: OnePlus 12 | OS: Android 13 | Trigger: load my dashboard | App version: 2.1.3,[Bug] App fails to load my dashboard
+EML00005,email,Feature Request,Low,,Feature Request
+EML00006,email,Feature Request,Medium,,Feature Request

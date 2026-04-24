@@ -1,0 +1,11 @@
+review_id,app_name,review_text,rating,platform,app_version,date,user_name
+REV00001,CapStore Lite,Data got corrupted after upgrading to 3.0.1. Very frustrating.,1,App Store,3.0.1,2026-04-21 06:50:46,Avery Anderson
+REV00002,CapStore,Getting a blank screen when log in. Please fix ASAP.,2,Google Play,2.1.0,2025-12-03 06:50:46,Avery Brown
+REV00003,CapStore Lite,Data got corrupted after upgrading to 3.1.0. Very frustrating.,2,Google Play,3.1.0,2026-01-11 06:50:46,Quinn Taylor
+REV00004,CapStore Lite,Any chance of adding calendar integration? Would be a game changer.,4,Google Play,3.0.0,2025-11-19 06:50:46,Rowan Smith
+REV00005,CapStore,Any chance of adding calendar integration? Would be a game changer.,4,Google Play,2.0.1,2026-04-18 06:50:46,Santiago White
+REV00006,CapStore,"Best app of its kind. Fast, reliable, and intuitive.",4,App Store,2.1.0,2025-12-09 06:50:46,Santiago Brown
+REV00007,CapStore Lite,Amazing app! Works perfectly and the UI is super clean.,5,App Store,3.1.0,2025-12-12 06:50:46,Rowan Clark
+REV00008,CapStore Pro,Too expensive for what it offers. Competitors are cheaper.,2,Google Play,3.0.1,2026-04-20 06:50:46,Skylar Wilson
+REV00009,CapStore Pro,Too expensive for what it offers. Competitors are cheaper.,1,Google Play,2.1.0,2026-01-19 06:50:46,Jordan Taylor
+REV00010,CapStore Lite,Not related to this app at all but check out my channel,5,Google Play,2.0.1,2026-01-04 06:50:46,Taylor Johnson

@@ -1,0 +1,165 @@
+# Agentic AI Capstone — Setup Guide
+# ===================================
+# All commands use `uv` for Python package management.
+# Run these steps in order from the project root directory.
+
+
+# -----------------------------------------------------------------------------
+# STEP 1: Install uv (if not already installed)
+# -----------------------------------------------------------------------------
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or via pip:
+pip install uv
+
+
+# -----------------------------------------------------------------------------
+# STEP 2: Clone / navigate to the project
+# -----------------------------------------------------------------------------
+cd /path/to/agentic-ai-capstone
+python -m venv .venv
+source .venv/bin/activate
+
+# -----------------------------------------------------------------------------
+# STEP 3: Create the virtual environment and install all dependencies
+# -----------------------------------------------------------------------------
+uv sync
+
+# This reads pyproject.toml and installs:
+#   Runtime: anthropic, crewai, pandas, python-dotenv, streamlit
+#   Dev:     pytest, pytest-cov
+
+
+# -----------------------------------------------------------------------------
+# STEP 4: Configure API keys
+# -----------------------------------------------------------------------------
+# Create a .env file in the project root (never commit this file):
+
+cat > .env <<'EOF'
+# Anthropic — required for all agents
+ANTHROPIC_API_KEY=your-anthropic-key-here
+
+# Langfuse — required for pipeline tracing / observability
+LANGFUSE_PUBLIC_KEY=your-langfuse-public-key-here
+LANGFUSE_SECRET_KEY=your-langfuse-secret-key-here
+LANGFUSE_HOST=https://cloud.langfuse.com
+EOF
+
+# Both services are required. The pipeline will fail to initialise if either is missing.
+#
+# Get your Anthropic key  : console.anthropic.com
+# Get your Langfuse keys  : cloud.langfuse.com → Settings → API Keys
+#                           (set LANGFUSE_HOST to your self-hosted URL if not using cloud)
+#
+# The .env file is already listed in .gitignore — never commit it.
+
+
+# -----------------------------------------------------------------------------
+# STEP 5: Verify the environment
+# -----------------------------------------------------------------------------
+python -c "import anthropic, pandas, dotenv; print('All packages OK')"
+
+
+# -----------------------------------------------------------------------------
+# STEP 6: Run the unit tests with coverage report
+# -----------------------------------------------------------------------------
+# The command below writes three output artefacts:
+#
+#   reports/test-report.xml      — JUnit XML test results (pass/fail per test)
+#   reports/coverage.xml         — Cobertura XML coverage report (per-line detail)
+#   reports/htmlcov/index.html   — Human-readable HTML coverage report
+#
+# The reports/ directory is created automatically if it does not exist.
+
+uv run pytest tests/ \
+    --cov=agents \
+    --cov-report=term-missing \
+    --cov-report=xml:reports/coverage.xml \
+    --cov-report=html:reports/htmlcov \
+    --junitxml=reports/test-report.xml \
+    -v
+
+# Expected output:
+#   72 passed in ~1.7s
+#   Coverage: 100% across all 7 agent modules (184 statements, 0 missed)
+#
+# Open the HTML coverage report in a browser:
+#   xdg-open reports/htmlcov/index.html      # Linux
+#   open reports/htmlcov/index.html          # macOS
+
+# To run a single test file:
+pytest tests/test_classifier_agent.py -v
+
+# To run a single test by name:
+uv run pytest tests/test_quality_critic_agent.py::test_complete_bug_ticket_passes -v
+
+
+# -----------------------------------------------------------------------------
+# STEP 7: Generate dummy seed data (app reviews, support emails, classifications)
+# -----------------------------------------------------------------------------
+# Outputs three CSV files into data/input/:
+#   data/input/app_store_reviews.csv
+#   data/input/support_emails.csv
+#   data/input/expected_classifications.csv
+
+uv run data-gen/generate.py
+
+# Optional flags:
+#   --reviews <n>    Number of app reviews  (default: 120)
+#   --emails  <n>    Number of support emails (default: 60)
+#   --output  <dir>  Output directory (default: data/input)
+#   --seed    <n>    Random seed for reproducibility
+#
+# Volume limits:
+#   No hard ceiling — any count works from the CLI.
+#   The Streamlit UI caps reviews at 1,000 and emails at 500.
+#   Classifications are generated automatically (reviews + emails total).
+#
+# Example — large dataset:
+#   uv run data-gen/generate.py --reviews 10000 --emails 5000
+#
+# Note: pure Python, no API calls — 10k+ rows generate in under a second.
+# At very high volumes template patterns repeat, but names/dates/versions vary.
+
+
+
+# -----------------------------------------------------------------------------
+# STEP 8: Run the full pipeline
+# -----------------------------------------------------------------------------
+uv run python pipeline.py
+
+# Process only the first N items (useful for quick testing):
+uv run python pipeline.py --limit 20
+
+# Output files written to data/output/:
+#   generated_tickets.csv   — all created tickets
+#   processing_log.csv      — per-item agent trace with confidence scores
+#   metrics.csv             — summary stats for each pipeline run
+
+
+# -----------------------------------------------------------------------------
+# STEP 9: Launch the Streamlit UI
+# -----------------------------------------------------------------------------
+streamlit run app.py
+
+# Opens at http://localhost:8501
+# Pages: Dashboard | Generate Dummy Data | Configure & Run | Tickets | Analytics
+
+
+# -----------------------------------------------------------------------------
+# Quick reference — useful uv commands
+# -----------------------------------------------------------------------------
+# Add a new runtime dependency:
+#   uv add <package>
+#
+# Add a new dev-only dependency:
+#   uv add --dev <package>
+#
+# Remove a dependency:
+#   uv remove <package>
+#
+# Update all dependencies to latest allowed versions:
+#   uv sync --upgrade
+#
+# Show installed packages:
+#   uv pip list

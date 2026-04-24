@@ -1,0 +1,11 @@
+review_id,app_name,review_text,rating,platform,version,timestamp
+REV00001,CapStore Pro,Can't upload a file since the latest update. Worked fine before.,1,Google Play,3.2.0,2026-01-15 06:44:43
+REV00002,CapStore,Notifications stopped working after version 3.1.0 update.,2,App Store,3.1.0,2025-12-01 06:44:43
+REV00003,CapStore,Data disappeared after upgrading to 2.1.0. Very frustrating.,2,Google Play,2.1.0,2025-10-29 06:44:43
+REV00004,CapStore Lite,Suggestion: add tablet support. Competing apps already have this.,3,Google Play,3.0.0,2026-01-30 06:44:43
+REV00005,CapStore Lite,It would be great if you could export data as PDF. Missing that feature.,3,App Store,3.1.0,2026-01-06 06:44:43
+REV00006,CapStore,The recent update improved performance a lot. Great work!,5,App Store,2.1.3,2025-11-08 06:44:43
+REV00007,CapStore Lite,The recent update improved performance a lot. Great work!,4,App Store,2.1.3,2026-01-23 06:44:43
+REV00008,CapStore Lite,The app has become so slow lately. Used to be snappy.,2,Google Play,2.1.3,2026-01-19 06:44:43
+REV00009,CapStore Pro,Poor UX design. Simple tasks take too many taps.,1,Google Play,2.1.3,2026-03-10 06:44:43
+REV00010,CapStore,asdfjkl; lol this app xDDDD,5,Google Play,2.1.0,2026-04-07 06:44:43
