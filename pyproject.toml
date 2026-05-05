@@ -1,13 +1,12 @@
 [project]
-name = "agentic-ai-capstone"
+name = "agentic-ai-adk"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
     "anthropic>=0.96.0",
-    "autogen-agentchat>=0.4.0",
-    "autogen-ext[anthropic]>=0.4.0",
-    "tiktoken>=0.7.0",
+    "google-adk>=1.0.0",
+    "litellm>=1.70.0",
     "langfuse>=4.5.0",
     "pandas>=3.0.2",
     "python-dotenv>=1.1.1",

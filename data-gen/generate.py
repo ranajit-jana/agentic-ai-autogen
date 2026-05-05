@@ -1,5 +1,5 @@
 """
-Dummy data generator for the capstone feedback pipeline.
+Dummy data generator for the adk feedback pipeline.
 
 Generates three CSV files:
   - app_store_reviews.csv       : Simulated app store reviews

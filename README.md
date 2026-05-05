@@ -1,6 +1,6 @@
-# Agentic AI Capstone — Feedback Pipeline
+# Agentic AI ADK — Feedback Pipeline
 
-An agentic feedback processing pipeline built with AutoGen and Claude. It reads app store reviews and support emails, classifies them, extracts structured information, and creates actionable tickets — all orchestrated through a multi-agent graph with a Streamlit UI for control and monitoring.
+An agentic feedback processing pipeline built with **Google ADK** and **Claude (via LiteLLM)**. It reads app store reviews and support emails, classifies them, extracts structured information, and creates actionable engineering tickets — all orchestrated through a multi-agent graph with a Streamlit UI for control and monitoring.
 
 ---
 
@@ -29,7 +29,65 @@ BugAnalysis  FeatureExtractor   specialised agents for structured extraction
   TicketCreatorAgent      writes final tickets to data/output/
 ```
 
-All agents are powered by `claude-sonnet-4-6` via the AutoGen `AnthropicChatCompletionClient`.
+All LLM agents are powered by `claude-sonnet-4-6` through **Google ADK** with **LiteLLM** as the model bridge.
+
+---
+
+## Tech Stack
+
+| Layer | Library |
+|-------|---------|
+| Agent framework | [Google ADK](https://google.github.io/adk-docs/) (`google-adk`) |
+| LLM provider | Anthropic Claude (`anthropic`) |
+| Model bridge | [LiteLLM](https://docs.litellm.ai/) (`litellm`) |
+| Observability | [Langfuse](https://langfuse.com/) (`langfuse`) |
+| UI | Streamlit |
+| Data | pandas |
+
+### Why LiteLLM?
+
+Google ADK is built around Gemini models. **LiteLLM** is a unified interface that normalises 100+ LLM providers (Anthropic, OpenAI, Cohere, Mistral, and more) into a single API. It acts as the bridge between ADK and Claude, so you can swap providers by changing a single model string — no other code changes needed.
+
+```python
+# ADK agent using Claude via LiteLLM
+Agent(
+    name="classifier",
+    model=LiteLlm(model="anthropic/claude-sonnet-4-6"),
+    instruction=system_prompt,
+)
+```
+
+The model string format is `"provider/model-name"` — LiteLLM routes it to the correct API automatically.
+
+---
+
+## How Agents Work
+
+Each agent follows the same stateless pattern:
+
+1. Build a structured prompt from the pipeline state
+2. Call `_invoke_agent()` — a module-level function that creates a fresh `InMemorySessionService` and `Runner` per call
+3. Stream the ADK response events and collect the final text
+4. Parse and validate the JSON output via Pydantic
+
+```python
+async def _invoke_agent(agent: Agent, prompt: str) -> str:
+    session_service = InMemorySessionService()
+    session = session_service.create_session(app_name=_APP_NAME, user_id="pipeline")
+    runner = Runner(agent=agent, app_name=_APP_NAME, session_service=session_service)
+    content = types.Content(role="user", parts=[types.Part(text=prompt)])
+    text = ""
+    async for event in runner.run_async(
+        user_id="pipeline", session_id=session.id, new_message=content
+    ):
+        if event.is_final_response() and event.content:
+            for part in event.content.parts:
+                if hasattr(part, "text") and part.text:
+                    text += part.text
+    return text
+```
+
+Each call gets its own isolated session — no accumulated history across feedback items.
 
 ---
 
@@ -55,7 +113,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 **2. Clone and enter the project**
 
 ```bash
-cd agentic-ai-capstone
+cd agentic-ai-google-adk
 ```
 
 **3. Create the virtual environment and install dependencies**
@@ -86,7 +144,7 @@ Both services are required. The pipeline will fail to initialise if either key i
 **5. Verify**
 
 ```bash
-python -c "import anthropic, pandas, streamlit; print('All packages OK')"
+python -c "import anthropic, google.adk, litellm, streamlit; print('All packages OK')"
 ```
 
 ---
@@ -286,7 +344,7 @@ open reports/htmlcov/index.html       # macOS
 ## Project Structure
 
 ```
-agentic-ai-capstone/
+agentic-ai-google-adk/
 ├── app.py                  Streamlit UI
 ├── pipeline.py             Pipeline entry point (CLI)
 ├── config.py               Paths, model name, thresholds

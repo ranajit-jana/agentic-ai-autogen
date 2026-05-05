@@ -1,7 +1,6 @@
 import json
 import os
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from agents.ticket_creator_agent import (
     TicketCreatorAgent,
@@ -10,6 +9,8 @@ from agents.ticket_creator_agent import (
     ensure_csv,
     next_ticket_id,
 )
+
+MODEL = "anthropic/claude-sonnet-4-6"
 
 BUG_STATE = {
     "id": "R001", "source_type": "review",
@@ -33,63 +34,55 @@ FEATURE_STATE = {
 
 @pytest.fixture
 def agent():
-    return TicketCreatorAgent(model_client=MagicMock())
+    return TicketCreatorAgent(model=MODEL)
 
 
-def _patch_run(agent, title, description):
-    msg = MagicMock()
-    msg.content = json.dumps({"title": title, "description": description})
-    result = MagicMock()
-    result.messages = [msg]
-    agent._agent.run = AsyncMock(return_value=result)
+def _patch_invoke(monkeypatch, title, description):
+    async def fake(agent_obj, prompt):
+        return json.dumps({"title": title, "description": description})
+    monkeypatch.setattr("agents.ticket_creator_agent._invoke_agent", fake)
 
 
 @pytest.mark.asyncio
-async def test_create_returns_required_keys(agent):
-    _patch_run(agent, "Fix sync crash on Android 14", "**Summary:** Crash.\n**Details:** Steps.\n**User Impact:** High.")
+async def test_create_returns_required_keys(monkeypatch, agent):
+    _patch_invoke(monkeypatch, "Fix sync crash on Android 14",
+                  "**Summary:** Crash.\n**Details:** Steps.\n**User Impact:** High.")
     result = await agent.create(BUG_STATE)
     for key in ("title", "description", "priority", "technical_details", "created_at"):
         assert key in result
 
 
 @pytest.mark.asyncio
-async def test_title_truncated_to_80_chars(agent):
-    _patch_run(agent, "Fix " + "x" * 100, "**Summary:** x.\n**Details:** y.\n**User Impact:** z.")
+async def test_title_truncated_to_80_chars(monkeypatch, agent):
+    _patch_invoke(monkeypatch, "Fix " + "x" * 100,
+                  "**Summary:** x.\n**Details:** y.\n**User Impact:** z.")
     result = await agent.create(BUG_STATE)
     assert len(result["title"]) <= 80
 
 
 @pytest.mark.asyncio
-async def test_retry_hint_included_when_retry_count_gt_0(agent):
+async def test_retry_hint_included_when_retry_count_gt_0(monkeypatch, agent):
     state = {**BUG_STATE, "retry_count": 1, "quality_issues": ["Title too generic"]}
     captured = []
 
-    async def capture_run(task):
-        captured.append(task)
-        msg = MagicMock()
-        msg.content = json.dumps({"title": "Fix sync crash on Android", "description": "x"})
-        r = MagicMock()
-        r.messages = [msg]
-        return r
+    async def capture(agent_obj, prompt):
+        captured.append(prompt)
+        return json.dumps({"title": "Fix sync crash on Android", "description": "x"})
 
-    agent._agent.run = capture_run
+    monkeypatch.setattr("agents.ticket_creator_agent._invoke_agent", capture)
     await agent.create(state)
     assert "Title too generic" in captured[0]
 
 
 @pytest.mark.asyncio
-async def test_no_retry_hint_on_first_attempt(agent):
+async def test_no_retry_hint_on_first_attempt(monkeypatch, agent):
     captured = []
 
-    async def capture_run(task):
-        captured.append(task)
-        msg = MagicMock()
-        msg.content = json.dumps({"title": "Fix sync crash", "description": "x"})
-        r = MagicMock()
-        r.messages = [msg]
-        return r
+    async def capture(agent_obj, prompt):
+        captured.append(prompt)
+        return json.dumps({"title": "Fix sync crash", "description": "x"})
 
-    agent._agent.run = capture_run
+    monkeypatch.setattr("agents.ticket_creator_agent._invoke_agent", capture)
     await agent.create(BUG_STATE)
     assert "PREVIOUS ATTEMPT" not in captured[0]
 

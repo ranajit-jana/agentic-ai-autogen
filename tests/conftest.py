@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+from contextlib import contextmanager
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,8 +9,8 @@ def mock_langfuse(monkeypatch):
     """Prevent any agent from hitting Langfuse during tests."""
     lf = MagicMock()
 
-    @asynccontextmanager
-    async def _fake_observation(**kwargs):
+    @contextmanager
+    def _fake_observation(**kwargs):
         yield MagicMock()
 
     lf.start_as_current_observation = _fake_observation

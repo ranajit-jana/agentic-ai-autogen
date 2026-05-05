@@ -1,0 +1,6 @@
+review_id,app_name,review_text,rating,platform,app_version,date,user_name
+R00001,TestApp,App crashes on login every time I open it,1,Google Play,1.0.0,2024-01-01,user1
+R00002,TestApp,Great app I love using it every day,5,App Store,1.0.0,2024-01-02,user2
+R00003,TestApp,Please add dark mode for night time use,3,Google Play,1.1.0,2024-01-03,user3
+R00004,TestApp,Sync is broken again after the latest update,2,App Store,1.1.0,2024-01-04,user4
+R00005,TestApp,Best productivity app I have ever used,5,App Store,1.2.0,2024-01-05,user5

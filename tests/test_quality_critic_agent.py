@@ -1,8 +1,9 @@
 import json
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from agents.quality_critic_agent import QualityCriticAgent
+
+MODEL = "anthropic/claude-sonnet-4-6"
 
 COMPLETE_BUG = {
     "source_id": "R001", "source_type": "review",
@@ -23,7 +24,8 @@ COMPLETE_FEATURE = {
 
 @pytest.fixture
 def agent():
-    return QualityCriticAgent(model_client=None)  # local rule-based, no LLM
+    # model=None uses local rule-based review without an LLM
+    return QualityCriticAgent(model=None)
 
 
 class TestReviewLocally:
@@ -99,31 +101,29 @@ class TestReviewLocally:
 
 class TestReviewWithLLM:
     @pytest.mark.asyncio
-    async def test_passes_on_llm_success(self):
-        agent = QualityCriticAgent(model_client=MagicMock())
-        msg = MagicMock()
-        msg.content = json.dumps({"passed": True, "issues": []})
-        result = MagicMock()
-        result.messages = [msg]
-        agent._agent.run = AsyncMock(return_value=result)
+    async def test_passes_on_llm_success(self, monkeypatch):
+        agent = QualityCriticAgent(model=MODEL)
+        async def fake(agent_obj, prompt):
+            return json.dumps({"passed": True, "issues": []})
+        monkeypatch.setattr("agents.quality_critic_agent._invoke_agent", fake)
         out = await agent.review(COMPLETE_BUG)
         assert out.passed is True
 
     @pytest.mark.asyncio
-    async def test_returns_issues_on_failure(self):
-        agent = QualityCriticAgent(model_client=MagicMock())
-        msg = MagicMock()
-        msg.content = json.dumps({"passed": False, "issues": ["Title too generic"]})
-        result = MagicMock()
-        result.messages = [msg]
-        agent._agent.run = AsyncMock(return_value=result)
+    async def test_returns_issues_on_failure(self, monkeypatch):
+        agent = QualityCriticAgent(model=MODEL)
+        async def fake(agent_obj, prompt):
+            return json.dumps({"passed": False, "issues": ["Title too generic"]})
+        monkeypatch.setattr("agents.quality_critic_agent._invoke_agent", fake)
         out = await agent.review(COMPLETE_BUG)
         assert out.passed is False
         assert "Title too generic" in out.issues
 
     @pytest.mark.asyncio
-    async def test_falls_back_to_local_on_llm_error(self):
-        agent = QualityCriticAgent(model_client=MagicMock())
-        agent._agent.run = AsyncMock(side_effect=Exception("LLM error"))
+    async def test_falls_back_to_local_on_llm_error(self, monkeypatch):
+        agent = QualityCriticAgent(model=MODEL)
+        async def error(agent_obj, prompt):
+            raise Exception("LLM error")
+        monkeypatch.setattr("agents.quality_critic_agent._invoke_agent", error)
         out = await agent.review(COMPLETE_BUG)
-        assert out.passed is True  # complete bug passes local review
+        assert out.passed is True

@@ -3,8 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Model
-MODEL_NAME = "claude-sonnet-4-6"
+# Model — LiteLlm format required by Google ADK for non-Gemini providers
+MODEL_NAME = "anthropic/claude-sonnet-4-6"
 
 # Paths
 DATA_INPUT_DIR = "data/input"

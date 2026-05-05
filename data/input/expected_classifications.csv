@@ -1,17 +1,31 @@
 source_id,source_type,category,priority,technical_details,suggested_title
-REV00001,review,Bug,High,Device: iPhone 14 | OS: Android 13 | Trigger: open the app,[Bug] App fails to open the app
-REV00002,review,Bug,Low,Device: iPhone 15 Pro | OS: Android 13 | Trigger: log in,[Bug] App fails to log in
-REV00003,review,Bug,Medium,Device: OnePlus 12 | OS: iOS 16.6 | Trigger: upload a file,[Bug] App fails to upload a file
-REV00004,review,Feature Request,Medium,,Feature Request
-REV00005,review,Feature Request,Medium,,Feature Request
-REV00006,review,Praise,Low,,[Praise] Positive user feedback
-REV00007,review,Praise,Low,,[Praise] Positive user feedback
-REV00008,review,Complaint,Medium,,[Complaint] Negative user experience reported
-REV00009,review,Complaint,Medium,,[Complaint] Negative user experience reported
-REV00010,review,Spam,Low,,[Spam] Flagged for removal
-EML00001,email,Bug,Medium,Device: Samsung Galaxy A54 | OS: iOS 17.2 | Trigger: check my notifications | App version: 3.0.0,[Bug] App fails to check my notifications
-EML00002,email,Bug,High,Device: Pixel 7a | OS: Android 15 | Trigger: upload a file | App version: 2.0.1,[Bug] App fails to upload a file
-EML00003,email,Bug,Medium,Device: Samsung Galaxy A54 | OS: iOS 16.6 | Trigger: load my dashboard | App version: 2.1.3,[Bug] App fails to load my dashboard
-EML00004,email,Bug,Low,Device: OnePlus 12 | OS: Android 13 | Trigger: load my dashboard | App version: 2.1.3,[Bug] App fails to load my dashboard
-EML00005,email,Feature Request,Low,,Feature Request
-EML00006,email,Feature Request,Medium,,Feature Request
+REV00001,review,Bug,Critical,Device: Pixel 8 | OS: Android 15 | Trigger: search for items,[Bug] App fails to search for items
+REV00002,review,Bug,Low,Device: Pixel 7a | OS: Android 14 | Trigger: search for items,[Bug] App fails to search for items
+REV00003,review,Bug,High,Device: Pixel 8 | OS: Android 15 | Trigger: switch accounts,[Bug] App fails to switch accounts
+REV00004,review,Bug,High,Device: iPhone 14 | OS: Android 14 | Trigger: open the app,[Bug] App fails to open the app
+REV00005,review,Bug,Critical,Device: Pixel 7a | OS: iOS 17.2 | Trigger: open the app,[Bug] App fails to open the app
+REV00006,review,Bug,Low,Device: Pixel 7a | OS: Android 13 | Trigger: open the app,[Bug] App fails to open the app
+REV00007,review,Feature Request,Low,,Suggestion for Improvement
+REV00008,review,Feature Request,Medium,,Feature Suggestion
+REV00009,review,Feature Request,Medium,,Feature Suggestion
+REV00010,review,Feature Request,Medium,,Feature Request: Dark Mode
+REV00011,review,Feature Request,Medium,,Feature Request: PDF Export
+REV00012,review,Praise,Low,,[Praise] Positive user feedback
+REV00013,review,Praise,Medium,,[Praise] Positive user feedback
+REV00014,review,Praise,Low,,[Praise] Positive user feedback
+REV00015,review,Praise,Medium,,[Praise] Positive user feedback
+REV00016,review,Complaint,Medium,,[Complaint] Negative user experience reported
+REV00017,review,Complaint,High,,[Complaint] Negative user experience reported
+REV00018,review,Complaint,Low,,[Complaint] Negative user experience reported
+REV00019,review,Spam,Low,,[Spam] Flagged for removal
+REV00020,review,Spam,Low,,[Spam] Flagged for removal
+EML00001,email,Bug,Low,Device: Xiaomi 14 | OS: iOS 16.6 | Trigger: switch accounts | App version: 3.0.0,[Bug] App fails to switch accounts
+EML00002,email,Bug,Critical,Device: OnePlus 12 | OS: Android 12 | Trigger: search for items | App version: 2.1.0,[Bug] App fails to search for items
+EML00003,email,Bug,Critical,Device: Pixel 8 | OS: iOS 17.4 | Trigger: load my dashboard | App version: 3.0.0,[Bug] App fails to load my dashboard
+EML00004,email,Bug,High,Device: iPhone 15 Pro | OS: iOS 16.6 | Trigger: upload a file | App version: 2.1.0,[Bug] App fails to upload a file
+EML00005,email,Bug,Medium,Device: Pixel 7a | OS: Android 15 | Trigger: switch accounts | App version: 3.0.0,[Bug] App fails to switch accounts
+EML00006,email,Bug,Low,Device: OnePlus 12 | OS: Android 13 | Trigger: search for items | App version: 3.0.1,[Bug] App fails to search for items
+EML00007,email,Feature Request,Medium,,Feature Request
+EML00008,email,Feature Request,Low,,Feature Request
+EML00009,email,Feature Request,Medium,,Feature Request
+EML00010,email,Feature Request,Medium,,Feature Request

@@ -1,7 +1,20 @@
+import os
 import pytest
-import pandas as pd
-from unittest.mock import patch
 from agents.csv_reader_agent import CSVReaderAgent
+
+_FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures")
+_REVIEWS_FIXTURE = os.path.join(_FIXTURES, "reviews.csv")
+_EMAILS_FIXTURE = os.path.join(_FIXTURES, "emails.csv")
+
+_REVIEW_COUNT = 5
+_EMAIL_COUNT = 3
+_TOTAL_COUNT = _REVIEW_COUNT + _EMAIL_COUNT
+
+
+@pytest.fixture(autouse=True)
+def patch_csv_paths(monkeypatch):
+    monkeypatch.setattr("agents.csv_reader_agent.REVIEWS_FILE", _REVIEWS_FIXTURE)
+    monkeypatch.setattr("agents.csv_reader_agent.EMAILS_FILE", _EMAILS_FIXTURE)
 
 
 @pytest.fixture
@@ -9,21 +22,21 @@ def agent():
     return CSVReaderAgent()
 
 
-def test_read_all_returns_35_items(agent):
+def test_read_all_returns_correct_total(agent):
     items = agent.read_all()
-    assert len(items) == 35
+    assert len(items) == _TOTAL_COUNT
 
 
-def test_read_all_returns_20_reviews(agent):
+def test_read_all_returns_correct_reviews(agent):
     items = agent.read_all()
     reviews = [i for i in items if i["source_type"] == "review"]
-    assert len(reviews) == 20
+    assert len(reviews) == _REVIEW_COUNT
 
 
-def test_read_all_returns_15_emails(agent):
+def test_read_all_returns_correct_emails(agent):
     items = agent.read_all()
     emails = [i for i in items if i["source_type"] == "email"]
-    assert len(emails) == 15
+    assert len(emails) == _EMAIL_COUNT
 
 
 def test_each_item_has_required_keys(agent):

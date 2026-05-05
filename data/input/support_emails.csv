@@ -1,61 +1,98 @@
 email_id,subject,body,sender_email,timestamp,priority
-EML00001,Data Loss Problem - Urgent,"To Whom It May Concern,
+EML00001,Login Issue Since Last Update,"Hello Support,
 
-I am experiencing won't load with my account data after the recent update. This is causing significant disruption.
+I am writing to report a crash that occurs every time I switch accounts. I am using Xiaomi 14 running iOS 16.6, app version 3.0.0.
+
+Steps to reproduce:
+1. Open the app
+2. Navigate to Notifications
+3. Tap switch accounts
+4. App crashes immediately
+
+Please advise. This is affecting my daily workflow.
+
+Regards,
+Blake Brown",bbrown@hotmail.com,2026-05-05 09:22:19,High
+EML00002,App Keeps Freezing,"Hi,
+
+Since updating to version 2.1.0, I can no longer search for items. I've tried uninstalling and reinstalling but the issue persists.
+Device: OnePlus 12 | OS: Android 12
+
+This is urgent for me. Please help.
+
+Santiago Wilson",santiago11@outlook.com,2026-03-31 09:22:19,Critical
+EML00003,Login Issue Since Last Update,"Hello Support,
+
+I am writing to report a crash that occurs every time I load my dashboard. I am using Pixel 8 running iOS 17.4, app version 3.0.0.
+
+Steps to reproduce:
+1. Open the app
+2. Navigate to Search
+3. Tap load my dashboard
+4. App crashes immediately
+
+Please advise. This is affecting my daily workflow.
+
+Regards,
+Rowan Johnson",rjohnson@gmail.com,2026-03-21 09:22:19,
+EML00004,Login Issue Since Last Update,"Hello Support,
+
+I am writing to report a crash that occurs every time I upload a file. I am using iPhone 15 Pro running iOS 16.6, app version 2.1.0.
+
+Steps to reproduce:
+1. Open the app
+2. Navigate to Settings
+3. Tap upload a file
+4. App crashes immediately
+
+Please advise. This is affecting my daily workflow.
+
+Regards,
+Mei Harris",mharris@hotmail.com,2026-03-11 09:22:19,Medium
+EML00005,Cannot Access My Account,"To Whom It May Concern,
+
+I am experiencing disappeared with my account data after the recent update. This is causing significant disruption.
 
 App version: 3.0.0
-Platform: iOS 17.2
-Device: Samsung Galaxy A54
-
-I would appreciate a swift resolution.
-
-Best,
-Jamie Martin",jamie51@hotmail.com,2026-03-05 06:50:46,Medium
-EML00002,Cannot Access My Account,"To Whom It May Concern,
-
-I am experiencing is out of sync with my account data after the recent update. This is causing significant disruption.
-
-App version: 2.0.1
 Platform: Android 15
 Device: Pixel 7a
 
 I would appreciate a swift resolution.
 
 Best,
-Yusuf Harris",yusuf.harris@outlook.com,2026-03-05 06:50:46,Medium
-EML00003,Login Issue Since Last Update,"To Whom It May Concern,
+Priya Harris",priya69@hotmail.com,2026-03-12 09:22:19,High
+EML00006,Data Loss Problem - Urgent,"Hello Support,
 
-I am experiencing disappeared with my account data after the recent update. This is causing significant disruption.
+I am writing to report a crash that occurs every time I search for items. I am using OnePlus 12 running Android 13, app version 3.0.1.
 
-App version: 2.1.3
-Platform: iOS 16.6
-Device: Samsung Galaxy A54
+Steps to reproduce:
+1. Open the app
+2. Navigate to Search
+3. Tap search for items
+4. App crashes immediately
 
-I would appreciate a swift resolution.
+Please advise. This is affecting my daily workflow.
 
-Best,
-Drew Taylor",dtaylor@hotmail.com,2026-04-19 06:50:46,
-EML00004,Login Issue Since Last Update,"To Whom It May Concern,
+Regards,
+Marcus Williams",marcus79@hotmail.com,2026-03-01 09:22:19,Medium
+EML00007,Would Love to See This Feature,"Hello,
 
-I am experiencing disappeared with my account data after the recent update. This is causing significant disruption.
+Just a quick suggestion: it would be great to have biometric login. Many of your competitors offer this and it would help retain users like me.
 
-App version: 2.1.3
-Platform: Android 13
-Device: OnePlus 12
+Cameron Harris",cameron.harris@gmail.com,2026-04-23 09:22:19,Low
+EML00008,Suggestion for Improvement,"Hello,
 
-I would appreciate a swift resolution.
+Just a quick suggestion: it would be great to have calendar integration. Many of your competitors offer this and it would help retain users like me.
 
-Best,
-Alex White",awhite@hotmail.com,2026-03-16 06:50:46,High
-EML00005,Suggestion for Improvement,"Hi CapStore Team,
+Skylar Miller",skylar71@gmail.com,2026-02-23 09:22:19,Low
+EML00009,Feature Request: Dark Mode,"Hi CapStore Team,
 
-I've been using the app for 8 months and love it! One thing that would make it even better is offline mode. Would you consider adding this in a future update?
-
-Thanks,
-Avery Brown",avery82@icloud.com,2026-04-11 06:50:46,Medium
-EML00006,Feature Request: Dark Mode,"Hi CapStore Team,
-
-I've been using the app for 20 months and love it! One thing that would make it even better is two-factor authentication. Would you consider adding this in a future update?
+I've been using the app for 12 months and love it! One thing that would make it even better is biometric login. Would you consider adding this in a future update?
 
 Thanks,
-Casey Rodriguez",casey.rodriguez@outlook.com,2026-03-09 06:50:46,
+Cameron Brown",cameron.brown@icloud.com,2026-04-01 09:22:19,
+EML00010,Suggestion for Improvement,"Hello,
+
+Just a quick suggestion: it would be great to have calendar integration. Many of your competitors offer this and it would help retain users like me.
+
+Cameron Smith",csmith@icloud.com,2026-03-12 09:22:19,Low

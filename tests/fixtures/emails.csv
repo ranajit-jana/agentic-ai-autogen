@@ -1,0 +1,4 @@
+email_id,subject,body,sender_email,timestamp,priority
+E00001,App crash on sync,The app keeps crashing when I try to sync my data,user1@example.com,2024-01-01 10:00:00,High
+E00002,Feature request dark mode,I would love a dark mode option for night use,user2@example.com,2024-01-02 11:00:00,Medium
+E00003,Cannot login after update,I cannot login to my account since the latest update,user3@example.com,2024-01-03 12:00:00,High

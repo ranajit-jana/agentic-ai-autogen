@@ -394,7 +394,7 @@ elif page == "Configure & Run":
         st.markdown("---")
         st.subheader("Current Config")
         st.json({
-            "model": "claude-sonnet-4-6",
+            "model": "anthropic/claude-sonnet-4-6",
             "confidence_threshold": threshold,
             "default_priority": new_priorities,
             "item_limit": limit if limit else "all",

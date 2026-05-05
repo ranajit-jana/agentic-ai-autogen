@@ -1,4 +1,4 @@
-# Agentic AI Capstone — Setup Guide
+# Agentic AI ADK — Setup Guide
 # ===================================
 # All commands use `uv` for Python package management.
 # Run these steps in order from the project root directory.
@@ -16,7 +16,7 @@ pip install uv
 # -----------------------------------------------------------------------------
 # STEP 2: Clone / navigate to the project
 # -----------------------------------------------------------------------------
-cd /path/to/agentic-ai-capstone
+cd /path/to/agentic-ai-google-adk
 python -m venv .venv
 source .venv/bin/activate
 
@@ -26,8 +26,8 @@ source .venv/bin/activate
 uv sync
 
 # This reads pyproject.toml and installs:
-#   Runtime: anthropic, crewai, pandas, python-dotenv, streamlit
-#   Dev:     pytest, pytest-cov
+#   Runtime: anthropic, google-adk, litellm, langfuse, pandas, python-dotenv, streamlit, plotly
+#   Dev:     pytest, pytest-asyncio, pytest-cov
 
 
 # -----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ EOF
 # -----------------------------------------------------------------------------
 # STEP 5: Verify the environment
 # -----------------------------------------------------------------------------
-python -c "import anthropic, pandas, dotenv; print('All packages OK')"
+python -c "import anthropic, google.adk, litellm, langfuse, pandas, streamlit; print('All packages OK')"
 
 
 # -----------------------------------------------------------------------------

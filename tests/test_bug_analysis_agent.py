@@ -1,8 +1,9 @@
 import json
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from agents.bug_analysis_agent import BugAnalysisAgent
+
+MODEL = "anthropic/claude-sonnet-4-6"
 
 SAMPLE = {
     "id": "R001", "source_type": "review",
@@ -12,25 +13,21 @@ SAMPLE = {
 
 @pytest.fixture
 def agent():
-    return BugAnalysisAgent(model_client=MagicMock())
+    return BugAnalysisAgent(model=MODEL)
 
 
-def _patch_run(agent, platform, os_version, steps, severity):
-    msg = MagicMock()
-    msg.content = json.dumps({
-        "platform": platform,
-        "os_version": os_version,
-        "steps_to_reproduce": steps,
-        "severity": severity,
-    })
-    result = MagicMock()
-    result.messages = [msg]
-    agent._agent.run = AsyncMock(return_value=result)
+def _patch_invoke(monkeypatch, data: dict):
+    async def fake(agent_obj, prompt):
+        return json.dumps(data)
+    monkeypatch.setattr("agents.bug_analysis_agent._invoke_agent", fake)
 
 
 @pytest.mark.asyncio
-async def test_returns_all_fields(agent):
-    _patch_run(agent, "Android 13", "13", "1) Open 2) Tap sync 3) Crash", "High")
+async def test_returns_all_fields(monkeypatch, agent):
+    _patch_invoke(monkeypatch, {
+        "platform": "Android 13", "os_version": "13",
+        "steps_to_reproduce": "1) Open 2) Tap sync 3) Crash", "severity": "High",
+    })
     out = await agent.analyze(SAMPLE)
     assert out.platform == "Android 13"
     assert out.os_version == "13"
@@ -39,53 +36,54 @@ async def test_returns_all_fields(agent):
 
 
 @pytest.mark.asyncio
-async def test_severity_critical(agent):
-    _patch_run(agent, "Android 14", "14", "Tap sync", "Critical")
+async def test_severity_critical(monkeypatch, agent):
+    _patch_invoke(monkeypatch, {"platform": "Android 14", "os_version": "14",
+                                "steps_to_reproduce": "Tap sync", "severity": "Critical"})
     out = await agent.analyze(SAMPLE)
     assert out.severity == "Critical"
 
 
 @pytest.mark.asyncio
-async def test_severity_medium(agent):
-    _patch_run(agent, "Windows 11", "11", "Widget not refreshing", "Medium")
+async def test_severity_medium(monkeypatch, agent):
+    _patch_invoke(monkeypatch, {"platform": "Windows 11", "os_version": "11",
+                                "steps_to_reproduce": "Widget not refreshing", "severity": "Medium"})
     out = await agent.analyze(SAMPLE)
     assert out.severity == "Medium"
 
 
 @pytest.mark.asyncio
-async def test_severity_low(agent):
-    _patch_run(agent, "iOS 16", "16", "Minor UI glitch", "Low")
+async def test_severity_low(monkeypatch, agent):
+    _patch_invoke(monkeypatch, {"platform": "iOS 16", "os_version": "16",
+                                "steps_to_reproduce": "Minor UI glitch", "severity": "Low"})
     out = await agent.analyze(SAMPLE)
     assert out.severity == "Low"
 
 
 @pytest.mark.asyncio
-async def test_invalid_severity_defaults_to_medium(agent):
-    _patch_run(agent, "iOS 17", "17", "Not specified", "Unknown")
+async def test_invalid_severity_defaults_to_medium(monkeypatch, agent):
+    _patch_invoke(monkeypatch, {"platform": "iOS 17", "os_version": "17",
+                                "steps_to_reproduce": "Not specified", "severity": "Unknown"})
     out = await agent.analyze(SAMPLE)
     assert out.severity == "Medium"
 
 
 @pytest.mark.asyncio
-async def test_unknown_platform_preserved(agent):
-    _patch_run(agent, "Unknown", "Unknown", "Not specified", "Low")
+async def test_unknown_platform_preserved(monkeypatch, agent):
+    _patch_invoke(monkeypatch, {"platform": "Unknown", "os_version": "Unknown",
+                                "steps_to_reproduce": "Not specified", "severity": "Low"})
     out = await agent.analyze(SAMPLE)
     assert out.platform == "Unknown"
 
 
 @pytest.mark.asyncio
-async def test_item_text_passed_to_agent(agent):
+async def test_item_text_passed_to_agent(monkeypatch, agent):
     captured = []
 
-    async def capture_run(task):
-        captured.append(task)
-        msg = MagicMock()
-        msg.content = json.dumps({"platform": "iOS", "os_version": "17",
-                                   "steps_to_reproduce": "step 1", "severity": "High"})
-        r = MagicMock()
-        r.messages = [msg]
-        return r
+    async def capture(agent_obj, prompt):
+        captured.append(prompt)
+        return json.dumps({"platform": "iOS", "os_version": "17",
+                           "steps_to_reproduce": "step 1", "severity": "High"})
 
-    agent._agent.run = capture_run
+    monkeypatch.setattr("agents.bug_analysis_agent._invoke_agent", capture)
     await agent.analyze({"id": "R1", "source_type": "review", "text": "unique crash text xyz"})
     assert "unique crash text xyz" in captured[0]

@@ -5,8 +5,6 @@ import uuid
 from datetime import datetime, timezone
 from typing import Callable
 
-from autogen_ext.models.anthropic import AnthropicChatCompletionClient
-
 import agents.classifier_agent as classifier_mod
 import agents.bug_analysis_agent as bug_mod
 import agents.feature_extractor_agent as feature_mod
@@ -14,7 +12,7 @@ import agents.ticket_creator_agent as ticket_mod
 import agents.quality_critic_agent as quality_mod
 from agents.csv_reader_agent import CSVReaderAgent
 from agents.tracer import get_client
-from config import ANTHROPIC_API_KEY, CONFIDENCE_THRESHOLD, MODEL_NAME
+from config import CONFIDENCE_THRESHOLD, MODEL_NAME
 from logger import PipelineLogger
 
 END = "__end__"
@@ -25,7 +23,7 @@ END = "__end__"
 # ---------------------------------------------------------------------------
 
 class FeedbackGraph:
-    """Directed graph with conditional routing ."""
+    """Directed graph with conditional routing."""
 
     def __init__(self):
         self._nodes: dict[str, Callable] = {}
@@ -68,20 +66,14 @@ class FeedbackGraph:
 # Agent factory + graph builder
 # ---------------------------------------------------------------------------
 
-def _make_model_client() -> AnthropicChatCompletionClient:
-    return AnthropicChatCompletionClient(
-        model=MODEL_NAME,
-        api_key=ANTHROPIC_API_KEY,
-    )
-
-
-def _build_agents(model_client) -> dict:
+def _build_agents() -> dict:
+    # Each agent receives the model name string; Google ADK wraps it via LiteLlm internally
     return {
-        "classifier": classifier_mod.ClassifierAgent(model_client),
-        "bug_analyst": bug_mod.BugAnalysisAgent(model_client),
-        "feature_analyst": feature_mod.FeatureExtractorAgent(model_client),
-        "ticket_creator": ticket_mod.TicketCreatorAgent(model_client),
-        "quality_critic": quality_mod.QualityCriticAgent(model_client),
+        "classifier": classifier_mod.ClassifierAgent(MODEL_NAME),
+        "bug_analyst": bug_mod.BugAnalysisAgent(MODEL_NAME),
+        "feature_analyst": feature_mod.FeatureExtractorAgent(MODEL_NAME),
+        "ticket_creator": ticket_mod.TicketCreatorAgent(MODEL_NAME),
+        "quality_critic": quality_mod.QualityCriticAgent(MODEL_NAME),
     }
 
 
@@ -160,8 +152,10 @@ def _build_graph(agents: dict) -> FeedbackGraph:
 # Pipeline runner
 # ---------------------------------------------------------------------------
 
+_CONCURRENCY = 3  # max items processed simultaneously; keeps bursts under Anthropic's 50 req/min limit
+
+
 async def _run_pipeline(run_id: str, log: "PipelineLogger", limit: int | None) -> dict:
-    model_client = _make_model_client()
     ticket_mod.ensure_csv()
 
     items = CSVReaderAgent().read_all()
@@ -172,79 +166,81 @@ async def _run_pipeline(run_id: str, log: "PipelineLogger", limit: int | None) -
     counts = {"created": 0, "skipped": 0, "failed": 0}
     category_counts: dict[str, int] = {}
 
-    print(f"\n[{run_id}] Processing {total} feedback item(s) via AutoGen graph...\n")
+    print(f"\n[{run_id}] Processing {total} feedback item(s) via Google ADK graph...\n")
 
-    for item in items:
-        source_id = item["id"]
-        source_type = item["source_type"]
+    sem = asyncio.Semaphore(_CONCURRENCY)
 
-        # Fresh agents per item — avoids accumulated conversation context
-        agents = _build_agents(model_client)
-        graph = _build_graph(agents)
-        state: dict = {**item, "retry_count": 0, "quality_passed": False}
+    async def process_item(item: dict) -> None:
+        async with sem:
+            source_id = item["id"]
+            source_type = item["source_type"]
 
-        lf = get_client()
-        try:
-            with lf.start_as_current_observation(
-                name="feedback-item",
-                as_type="agent",
-                input={"id": source_id, "source_type": source_type, "text": item["text"][:500]},
-                metadata={"run_id": run_id},
-            ) as obs:
-                state = await graph.invoke(state)
-                obs.update(
-                    output={
-                        "category": state.get("category"),
-                        "confidence": state.get("confidence"),
-                        "ticket_created": bool(state.get("quality_passed")),
-                    },
-                )
-        except Exception as exc:
-            print(f"  [{source_id}] ERROR — {exc}")
-            log.log_step(source_id, source_type, "pipeline", "error")
-            counts["failed"] += 1
-            continue
+            agents = _build_agents()
+            graph = _build_graph(agents)
+            state: dict = {**item, "retry_count": 0, "quality_passed": False}
 
-        category = state.get("category", "Unknown")
-        confidence = state.get("confidence", 0.0)
-        category_counts[category] = category_counts.get(category, 0) + 1
+            lf = get_client()
+            try:
+                with lf.start_as_current_observation(
+                    name="feedback-item",
+                    as_type="agent",
+                    input={"id": source_id, "source_type": source_type, "text": item["text"][:500]},
+                    metadata={"run_id": run_id},
+                ) as obs:
+                    state = await graph.invoke(state)
+                    obs.update(
+                        output={
+                            "category": state.get("category"),
+                            "confidence": state.get("confidence"),
+                            "ticket_created": bool(state.get("quality_passed")),
+                        },
+                    )
+            except Exception as exc:
+                print(f"  [{source_id}] ERROR — {exc}")
+                log.log_step(source_id, source_type, "pipeline", "error")
+                counts["failed"] += 1
+                return
 
-        log.log_step(
-            source_id, source_type, "classifier", category,
-            confidence=confidence,
-            input_data={"text": item["text"][:200]},
-            output_data={"category": category, "confidence": confidence},
-        )
+            category = state.get("category", "Unknown")
+            confidence = state.get("confidence", 0.0)
+            category_counts[category] = category_counts.get(category, 0) + 1
 
-        # Items that hit END before ticket creation
-        if category in ("Praise", "Complaint", "Spam"):
-            reason = category.lower()
-            print(f"  [{source_id}] SKIPPED — {reason}")
-            counts["skipped"] += 1
-            continue
-        if confidence < CONFIDENCE_THRESHOLD:
-            reason = f"low-confidence ({confidence:.2f})"
-            print(f"  [{source_id}] SKIPPED — {reason}")
-            log.log_step(source_id, source_type, "filter", "skipped",
-                         output_data={"reason": reason})
-            counts["skipped"] += 1
-            continue
+            log.log_step(
+                source_id, source_type, "classifier", category,
+                confidence=confidence,
+                input_data={"text": item["text"][:200]},
+                output_data={"category": category, "confidence": confidence},
+            )
 
-        if state.get("quality_passed"):
-            ticket = ticket_mod.build_ticket_from_state(state)
-            ticket_mod.append_to_csv(ticket)
-            tid = ticket["ticket_id"]
-            title = ticket["title"][:55]
-            print(f"  [{source_id}] OK  — {category:<18} → {tid}: {title}")
-            log.log_step(source_id, source_type, "ticket_creator", "created",
-                         output_data={"ticket_id": tid, "title": ticket["title"]})
-            counts["created"] += 1
-        else:
-            issues = state.get("quality_issues", [])
-            print(f"  [{source_id}] FAIL — quality check failed: {', '.join(issues)}")
-            log.log_step(source_id, source_type, "quality_critic", "failed",
-                         output_data={"issues": issues})
-            counts["failed"] += 1
+            if category in ("Praise", "Complaint", "Spam"):
+                print(f"  [{source_id}] SKIPPED — {category.lower()}")
+                counts["skipped"] += 1
+                return
+            if confidence < CONFIDENCE_THRESHOLD:
+                reason = f"low-confidence ({confidence:.2f})"
+                print(f"  [{source_id}] SKIPPED — {reason}")
+                log.log_step(source_id, source_type, "filter", "skipped",
+                             output_data={"reason": reason})
+                counts["skipped"] += 1
+                return
+
+            if state.get("quality_passed"):
+                ticket = ticket_mod.build_ticket_from_state(state)
+                ticket_mod.append_to_csv(ticket)
+                tid = ticket["ticket_id"]
+                title = ticket["title"][:55]
+                print(f"  [{source_id}] OK  — {category:<18} → {tid}: {title}")
+                log.log_step(source_id, source_type, "ticket_creator", "created",
+                             output_data={"ticket_id": tid, "title": ticket["title"]})
+                counts["created"] += 1
+            else:
+                issues = state.get("quality_issues", [])
+                print(f"  [{source_id}] FAIL — quality check failed: {', '.join(issues)}")
+                log.log_step(source_id, source_type, "quality_critic", "failed",
+                             output_data={"issues": issues})
+                counts["failed"] += 1
+
+    await asyncio.gather(*[process_item(item) for item in items])
 
     stats = {"total": total, **counts, "category_counts": category_counts}
     log.log_metrics(stats)
@@ -271,7 +267,7 @@ def run(limit: int | None = None) -> dict:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run the feedback pipeline via AutoGen graph.")
+    parser = argparse.ArgumentParser(description="Run the feedback pipeline via Google ADK graph.")
     parser.add_argument("--limit", type=int, default=None, metavar="N",
                         help="Process only the first N items.")
     args = parser.parse_args()

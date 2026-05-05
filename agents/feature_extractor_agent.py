@@ -1,7 +1,11 @@
 import json
 import re
 
-from autogen_agentchat.agents import AssistantAgent
+from google.adk.agents import Agent
+from google.adk.models.lite_llm import LiteLlm
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.genai import types
 from pydantic import BaseModel, field_validator
 
 from agents.tracer import get_client
@@ -14,6 +18,9 @@ _SYSTEM = (
     "for mobile apps. You understand user needs deeply and assess impact and demand accurately. "
     "Respond ONLY with a valid JSON object — no prose, no markdown fences."
 )
+
+# Fresh session per call keeps each LLM interaction stateless
+_APP_NAME = "feedback_pipeline"
 
 
 class FeatureExtractionOutput(BaseModel):
@@ -33,11 +40,11 @@ class FeatureExtractionOutput(BaseModel):
 
 
 class FeatureExtractorAgent:
-    def __init__(self, model_client):
-        self._agent = AssistantAgent(
+    def __init__(self, model: str = MODEL_NAME):
+        self._agent = Agent(
             name="feature_analyst",
-            system_message=_SYSTEM,
-            model_client=model_client,
+            model=LiteLlm(model=model),
+            instruction=_SYSTEM,
         )
 
     async def extract(self, item: dict) -> FeatureExtractionOutput:
@@ -67,20 +74,36 @@ Return ONLY a JSON object with all three fields."""
             ],
             metadata={"source_id": item.get("id"), "source_type": item.get("source_type")},
         ):
-            result = await self._agent.run(task=prompt)
-            raw = _last_text(result)
+            raw = await _invoke_agent(self._agent, prompt)
             lf.update_current_generation(output=raw)
 
         data = _parse_json(raw)
         return FeatureExtractionOutput(**data)
 
 
-def _last_text(result) -> str:
-    for msg in reversed(result.messages):
-        content = getattr(msg, "content", None)
-        if isinstance(content, str) and content.strip():
-            return content
-    return ""
+async def _invoke_agent(agent: Agent, prompt: str) -> str:
+    import asyncio as _asyncio
+    # Each call gets its own session — no accumulated history across items
+    for attempt in range(4):
+        try:
+            session_service = InMemorySessionService()
+            session = await session_service.create_session(app_name=_APP_NAME, user_id="pipeline")
+            runner = Runner(agent=agent, app_name=_APP_NAME, session_service=session_service)
+            content = types.Content(role="user", parts=[types.Part(text=prompt)])
+            text = ""
+            async for event in runner.run_async(
+                user_id="pipeline", session_id=session.id, new_message=content
+            ):
+                if event.is_final_response() and event.content:
+                    for part in event.content.parts:
+                        if hasattr(part, "text") and part.text:
+                            text += part.text
+            return text
+        except Exception as exc:
+            if "rate_limit" in str(exc).lower() and attempt < 3:
+                await _asyncio.sleep(10 * (2 ** attempt))
+            else:
+                raise
 
 
 def _parse_json(text: str) -> dict:
